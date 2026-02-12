@@ -5,14 +5,14 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from dotenv import load_dotenv, dotenv_values
 import os
 
-# Load environment variables using absolute path
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Load environment variables from project root
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Check for .env in current dir first, then parent dir (root)
+# Check for .env in current dir (backend/) first, then parent dir (root)
 DOTENV_PATH = os.path.join(BASE_DIR, ".env")
 if not os.path.exists(DOTENV_PATH):
     DOTENV_PATH = os.path.join(os.path.dirname(BASE_DIR), ".env")
+
+# This populates os.environ
 load_dotenv(DOTENV_PATH, override=True)
 
 app = FastAPI()
@@ -39,23 +39,24 @@ class ContactForm(BaseModel):
     subject: str
     message: str
 
-def get_mail_conf():
+def get_mail_conf(env: dict):
     return ConnectionConfig(
-        MAIL_USERNAME = os.getenv("MAIL_USERNAME", ""),
-        MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", ""),
-        MAIL_FROM = os.getenv("MAIL_FROM", ""),
-        MAIL_PORT = int(os.getenv("MAIL_PORT", 587)),
-        MAIL_SERVER = os.getenv("MAIL_SERVER", ""),
-        MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Portfolio_Contact"),
-        MAIL_STARTTLS = os.getenv("MAIL_STARTTLS", "True").lower() == "true",
-        MAIL_SSL_TLS = os.getenv("MAIL_SSL_TLS", "False").lower() == "true",
+        MAIL_USERNAME = env.get("MAIL_USERNAME", ""),
+        MAIL_PASSWORD = env.get("MAIL_PASSWORD", ""),
+        MAIL_FROM = env.get("MAIL_FROM", ""),
+        MAIL_PORT = int(env.get("MAIL_PORT", 587)),
+        MAIL_SERVER = env.get("MAIL_SERVER", ""),
+        MAIL_FROM_NAME = env.get("MAIL_FROM_NAME", "Portfolio_Contact"),
+        MAIL_STARTTLS = str(env.get("MAIL_STARTTLS", "True")).lower() == "true",
+        MAIL_SSL_TLS = str(env.get("MAIL_SSL_TLS", "False")).lower() == "true",
         USE_CREDENTIALS = True,
-        VALIDATE_CERTS = True
+        VALIDATE_CERTS = True,
+        TIMEOUT = 60 # Give Gmail 60 seconds to respond
     )
 
 @app.post("/send-email")
 async def send_contact_email(form: ContactForm):
-    # Reload env vars to pick up changes without restart
+    # System variables (Render) take priority over the local .env file
     env_vars = {**dotenv_values(DOTENV_PATH), **os.environ}
     
     test_mode = str(env_vars.get("TEST_MODE", "false")).lower().strip() == "true"
@@ -80,7 +81,7 @@ async def send_contact_email(form: ContactForm):
 
     # Real Email Path
     try:
-        conf = get_mail_conf()
+        conf = get_mail_conf(env_vars)
         html = f"""
         <h3>New Contact Message from Portfolio</h3>
         <p><b>Name:</b> {form.name}</p>
