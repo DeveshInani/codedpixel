@@ -40,18 +40,26 @@ class ContactForm(BaseModel):
     message: str
 
 def get_mail_conf(env: dict):
+    # Safely parse port
+    try:
+        raw_port = env.get("MAIL_PORT", "587")
+        # Ensure it's a valid integer
+        mail_port = int(raw_port) if raw_port and str(raw_port).strip().isdigit() else 587
+    except:
+        mail_port = 587
+
     return ConnectionConfig(
         MAIL_USERNAME = env.get("MAIL_USERNAME", ""),
         MAIL_PASSWORD = env.get("MAIL_PASSWORD", ""),
         MAIL_FROM = env.get("MAIL_FROM", ""),
-        MAIL_PORT = int(env.get("MAIL_PORT", 587)),
-        MAIL_SERVER = env.get("MAIL_SERVER", ""),
+        MAIL_PORT = mail_port,
+        MAIL_SERVER = env.get("MAIL_SERVER", "smtp.gmail.com"),
         MAIL_FROM_NAME = env.get("MAIL_FROM_NAME", "Portfolio_Contact"),
         MAIL_STARTTLS = str(env.get("MAIL_STARTTLS", "True")).lower() == "true",
         MAIL_SSL_TLS = str(env.get("MAIL_SSL_TLS", "False")).lower() == "true",
         USE_CREDENTIALS = True,
         VALIDATE_CERTS = True,
-        TIMEOUT = 60 # Give Gmail 60 seconds to respond
+        TIMEOUT = 60
     )
 
 @app.post("/send-email")
@@ -82,6 +90,12 @@ async def send_contact_email(form: ContactForm):
     # Real Email Path
     try:
         conf = get_mail_conf(env_vars)
+        
+        # Log attempting connection (visible in Render logs)
+        print(f"DEBUG: Attempting SMTP connection...")
+        print(f"DEBUG: Server: {conf.MAIL_SERVER}:{conf.MAIL_PORT}")
+        print(f"DEBUG: SSL: {conf.MAIL_SSL_TLS}, STARTTLS: {conf.MAIL_STARTTLS}")
+        
         html = f"""
         <h3>New Contact Message from Portfolio</h3>
         <p><b>Name:</b> {form.name}</p>
@@ -100,9 +114,12 @@ async def send_contact_email(form: ContactForm):
 
         fm = FastMail(conf)
         await fm.send_message(message)
+        print("DEBUG: Email sent successfully!")
         return {"message": "Email has been sent"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = f"SMTP Error: {type(e).__name__} - {str(e)}"
+        print(f"DEBUG: {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
 
 if __name__ == "__main__":
     import uvicorn
