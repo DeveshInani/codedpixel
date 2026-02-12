@@ -46,6 +46,7 @@ Vercel will host your React interface.
 ## 🛠️ Important Notes
 - **Cold Boot**: Since Render is free, your backend will "sleep" after 15 minutes of no work. The first time you send an email after a break, it might take 30 seconds to wake up. This is normal for free hosting!
 - **Gmail Security**: Make sure you are using an **App Password**, not your regular Gmail password. 
+- **ModuleNotFoundError**: If Render says a module like `resend` is missing, go to the **Events** tab or the **Deploy** menu and select **Manual Deploy** > **Clear Build Cache & Deploy**. This forces Render to reinstall everything from scratch.
 - **Auto-Updates**: Every time you push new code to your GitHub `main` branch, both Vercel and Render will automatically update your site.
 
 **You are now a Web Developer! 🥂**

@@ -5,3 +5,5 @@ python-dotenv
 fastapi-mail
 python-multipart
 gunicorn
+resend
+# Build trigger for dependencies
