@@ -62,10 +62,15 @@ def get_mail_conf(env: dict):
         TIMEOUT = 60
     )
 
+import resend
+
 @app.post("/send-email")
 async def send_contact_email(form: ContactForm):
     # System variables (Render) take priority over the local .env file
     env_vars = {**dotenv_values(DOTENV_PATH), **os.environ}
+    
+    resend_api_key = env_vars.get("RESEND_API_KEY")
+    print(f"DEBUG: Resend Key detected: {'Yes' if resend_api_key else 'No'}")
     
     test_mode = str(env_vars.get("TEST_MODE", "false")).lower().strip() == "true"
     username = env_vars.get("MAIL_USERNAME", "")
@@ -73,7 +78,7 @@ async def send_contact_email(form: ContactForm):
     
     # Check for placeholders or explicit test mode
     is_test_active = test_mode or \
-                    not username or \
+                    not (username or resend_api_key) or \
                     "your_email" in username or \
                     "xxxx" in password or \
                     password == "Devesh@839"
@@ -87,14 +92,40 @@ async def send_contact_email(form: ContactForm):
         print("<<<" * 15 + "\n")
         return {"message": "Test mode active: Email logged to terminal."}
 
-    # Real Email Path
+    # Choice 1: Resend API (Recommended for Render)
+    if resend_api_key:
+        try:
+            print("DEBUG: Attempting to send via Resend API...")
+            resend.api_key = resend_api_key
+            
+            result = resend.Emails.send({
+                "from": f"{form.name} <onboarding@resend.dev>", # Note: Resend Free tier requires this sender
+                "to": [env_vars.get("MAIL_FROM")],
+                "subject": f"Portfolio Contact: {form.subject}",
+                "reply_to": form.email,
+                "html": f"""
+                <h3>New Contact Message</h3>
+                <p><b>Name:</b> {form.name}</p>
+                <p><b>Email:</b> {form.email}</p>
+                <p><b>Message:</b></p>
+                <p>{form.message}</p>
+                """
+            })
+            print(f"DEBUG: Resend Success! ID: {result.get('id')}")
+            return {"message": "Email sent successfully via Resend"}
+        except Exception as e:
+            error_msg = f"Resend Error: {str(e)}"
+            print(f"DEBUG: {error_msg}")
+            # Fall through to SMTP if Resend fails
+            print("DEBUG: Falling back to SMTP...")
+
+    # Choice 2: SMTP (Local mode)
     try:
         conf = get_mail_conf(env_vars)
         
         # Log attempting connection (visible in Render logs)
         print(f"DEBUG: Attempting SMTP connection...")
         print(f"DEBUG: Server: {conf.MAIL_SERVER}:{conf.MAIL_PORT}")
-        print(f"DEBUG: SSL: {conf.MAIL_SSL_TLS}, STARTTLS: {conf.MAIL_STARTTLS}")
         
         html = f"""
         <h3>New Contact Message from Portfolio</h3>
@@ -107,14 +138,14 @@ async def send_contact_email(form: ContactForm):
 
         message = MessageSchema(
             subject=f"Portfolio Contact: {form.subject}",
-            recipients=[os.getenv("MAIL_FROM")],
+            recipients=[env_vars.get("MAIL_FROM")],
             body=html,
             subtype=MessageType.html
         )
 
         fm = FastMail(conf)
         await fm.send_message(message)
-        print("DEBUG: Email sent successfully!")
+        print("DEBUG: Email sent via SMTP successfully!")
         return {"message": "Email has been sent"}
     except Exception as e:
         error_msg = f"SMTP Error: {type(e).__name__} - {str(e)}"
