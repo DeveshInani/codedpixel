@@ -1,12 +1,15 @@
 import { motion } from 'framer-motion';
 import { GraduationCap } from 'lucide-react';
 import { EDUCATION } from '../../data';
+import GlitchText from '../ui/GlitchText';
 
 const Education = () => {
     return (
-        <section className="py-20 px-6 md:px-12 max-w-4xl mx-auto">
+        <section id="experience" className="py-20 px-6 md:px-12 max-w-4xl mx-auto">
             <div className="flex items-center gap-4 mb-16 justify-end">
-                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-right uppercase">Cognitive Archive</h2>
+                <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-right uppercase">
+                    <GlitchText text="Cognitive Archive" />
+                </h2>
                 <div className="w-12 h-12 rounded-xl bg-cyan-400/10 flex items-center justify-center text-cyan-400 border border-cyan-400/20">
                     <GraduationCap size={24} />
                 </div>
@@ -20,6 +23,7 @@ const Education = () => {
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ y: -5 }}
+                        data-cursor-text="DECRYPT"
                         className="glass-card p-8 rounded-3xl border border-white/5 bg-gradient-to-br from-white/5 to-transparent relative group overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-cyan-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

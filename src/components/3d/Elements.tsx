@@ -2,6 +2,7 @@ import { useRef, useMemo, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
+import { audioEngine } from '../../utils/AudioEngine';
 
 export const CursorFollower = () => {
     const meshRef = useRef<THREE.Group>(null!);
@@ -154,9 +155,9 @@ export const VoxelHumanoid = ({ storyPhase, isIntro }: { storyPhase: number, isI
     const [burstTime, setBurstTime] = useState(-10);
 
     const randomDir = useMemo(() => SEGMENTS.map(() => [
-        (Math.random() - 0.5) * 20,
-        (Math.random() - 0.5) * 20,
-        (Math.random() - 0.5) * 20
+        (Math.random() - 0.5) * 30, // Increased burst range
+        (Math.random() - 0.5) * 30,
+        (Math.random() - 0.5) * 30
     ]), []);
 
     const randomOffsets = useMemo(() => SEGMENTS.map(() => Math.random() * Math.PI * 2), []);
@@ -166,10 +167,17 @@ export const VoxelHumanoid = ({ storyPhase, isIntro }: { storyPhase: number, isI
         if (!groupRef.current) return;
 
         const timeSinceBurst = time - burstTime;
-        const isCurrentlyBursting = timeSinceBurst > 0 && timeSinceBurst < 2.5;
-        const burstFactor = isCurrentlyBursting
-            ? Math.sin(Math.min(timeSinceBurst * 2, Math.PI))
-            : 0;
+        const isCurrentlyBursting = timeSinceBurst > 0 && timeSinceBurst < 4.0; // Longer burst cycle
+
+        // Custom curve: fast burst, slow return
+        let burstFactor = 0;
+        if (isCurrentlyBursting) {
+            if (timeSinceBurst < 0.5) {
+                burstFactor = (timeSinceBurst / 0.5) * 1.5; // Fast push
+            } else {
+                burstFactor = 1.5 * Math.pow(1 - (timeSinceBurst - 0.5) / 3.5, 3); // Slow pull back
+            }
+        }
 
         groupRef.current.children.forEach((child, i) => {
             const segment = SEGMENTS[i];
@@ -185,33 +193,23 @@ export const VoxelHumanoid = ({ storyPhase, isIntro }: { storyPhase: number, isI
                 targetPos = [dir[0], dir[1], dir[2]];
                 targetScale = [0, 0, 0];
             } else if (storyPhase >= 2) {
-                // When showing projects or further sections, keep him small and on the side
                 const dir = randomDir[i];
-                targetPos = [dir[0] + 5, dir[1], -15];
+                targetPos = [dir[0] + 8, dir[1], -15];
                 targetScale = [0.3, 0.3, 0.3];
             }
 
-            // 2. Additive Dancing Animation (Always active in basic phases)
-            if (!isCurrentlyBursting && storyPhase < 2) {
-                // Bobbing torso/head
+            // 2. Additive Dancing Animation
+            if (burstFactor < 0.1 && storyPhase < 2) {
                 if (segment.name === 'torso' || segment.name === 'head' || segment.name.includes('eye')) {
-                    targetPos[1] += Math.sin(time * 4) * 0.15;
-                    targetRot[2] = Math.sin(time * 2 + offset) * 0.05;
+                    targetPos[1] += Math.sin(time * 4) * 0.1;
                 }
-                // Rhythmic arms
                 if (segment.name.includes('arm') || segment.name.includes('hand')) {
                     const side = segment.name.includes('L') ? -1 : 1;
-                    targetRot[2] += Math.sin(time * 4 + offset) * 0.5 * side;
-                    targetPos[1] += Math.cos(time * 4) * 0.1;
-                }
-                // Stepping legs
-                if (segment.name.includes('leg')) {
-                    targetRot[0] = Math.sin(time * 8 + offset) * 0.3;
-                    targetPos[1] += Math.max(0, Math.sin(time * 8 + offset) * 0.15);
+                    targetRot[2] += Math.sin(time * 4 + offset) * 0.3 * side;
                 }
             }
 
-            // 3. Burst Effect (Highest Priority)
+            // 3. Burst Effect
             if (burstFactor > 0) {
                 const dir = randomDir[i];
                 targetPos[0] += dir[0] * burstFactor;
@@ -223,7 +221,7 @@ export const VoxelHumanoid = ({ storyPhase, isIntro }: { storyPhase: number, isI
 
             // Smooth interpolation
             child.position.x += (targetPos[0] - child.position.x) * 0.1;
-            child.position.y += (targetPos[1] - child.position.y) * 0.15;
+            child.position.y += (targetPos[1] - child.position.y) * 0.1;
             child.position.z += (targetPos[2] - child.position.z) * 0.1;
 
             child.rotation.x += (targetRot[0] - child.rotation.x) * 0.1;
@@ -233,7 +231,8 @@ export const VoxelHumanoid = ({ storyPhase, isIntro }: { storyPhase: number, isI
             child.scale.setScalar(THREE.MathUtils.lerp(child.scale.x, targetScale[0], 0.1));
         });
 
-        // General floating/sway
+
+        // Auto-sway
         groupRef.current.position.y = -1 + Math.sin(time * 2) * 0.1;
     });
 
@@ -243,8 +242,8 @@ export const VoxelHumanoid = ({ storyPhase, isIntro }: { storyPhase: number, isI
             position={[0, -1, 0]}
             onClick={(e) => {
                 e.stopPropagation();
-                // Use the reliable R3F clock time
                 setBurstTime(clock.getElapsedTime());
+                audioEngine.playBurst();
             }}
         >
             {SEGMENTS.map((seg) => (

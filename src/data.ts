@@ -1,15 +1,15 @@
-import { Github, Linkedin, Mail, Twitter, Instagram } from 'lucide-react';
+import { Github, Linkedin, Mail } from 'lucide-react';
 
 export const SOCIALS = [
-    { name: 'GitHub', icon: Github, link: 'https://github.com/deveshinani839' }, // Assuming github username from email, generic placeholder otherwise
-    { name: 'LinkedIn', icon: Linkedin, link: '#' },
+    { name: 'GitHub', icon: Github, link: 'https://github.com/deveshinani839' },
+    { name: 'LinkedIn', icon: Linkedin, link: 'https://www.linkedin.com/in/devesh-inani-700547289/' },
     { name: 'Email', icon: Mail, link: 'mailto:deveshinani839@gmail.com' },
 ];
 
 export const HERO_CONTENT = {
     name: "DEVESH INANI",
-    tagline: "Cooking Big Brain AI Systems",
-    bio: "Building logic with aura. Main character energy in the terminal. No cap, just compute. Shipping code that hits different.",
+    tagline: "Exploring AI & Building Scalable Systems",
+    bio: "Passionate developer focused on AI/ML and modern web systems. I enjoy turning complex challenges into clean, efficient code while constantly learning and refining my craft.",
     location: "Hyderabad, Telangana"
 };
 
@@ -54,27 +54,31 @@ export const EDUCATION = [
 export const PROJECTS = [
     {
         title: "BIM MILLS",
-        desc: "Textile manufacturing website. Smart factory vibes.",
-        tags: ["React", "Industry 4.0", "Web"],
-        color: "#4ade80"
+        desc: "Specialized textile manufacturing platform for smart factory management.",
+        tags: ["fastapi", "react", "tailwind", "Mysql", "Industry level grade"],
+        color: "#4ade80",
+        github: "https://www.linkedin.com/in/devesh-inani-700547289/"
     },
     {
         title: "Lung Cancer Detection",
-        desc: "Deep learning model for prediction. High precision, saving lives fr.",
-        tags: ["DL", "Medical AI", "Python"],
-        color: "#f43f5e"
+        desc: "Research-driven DL model for medical image analysis and prediction.",
+        tags: ["research and development", "machine learning", "eda", "Mathematics", "Preprocessing"],
+        color: "#f43f5e",
+        github: "https://www.linkedin.com/in/devesh-inani-700547289/"
     },
     {
-        title: "AI Proctoring",
-        desc: "Enterprise level solution. Keeping exams fair with big brain AI.",
-        tags: ["AI", "Enterprise", "Security"],
-        color: "#22d3ee"
+        title: "Snitchbot",
+        desc: "Advanced proctoring solution utilizing facial recognition and detection.",
+        tags: ["mtcnn", "face recognition", "detection", "ai", "ml", "fastapi", "react", "mysql", "sqlite"],
+        color: "#22d3ee",
+        github: "https://www.linkedin.com/in/devesh-inani-700547289/"
     },
     {
         title: "AI Doctor",
-        desc: "Your digital health guardian. AI powered diagnostics.",
-        tags: ["Healthcare", "AI", "Ml"],
-        color: "#a855f7"
+        desc: "Digital health platform for AI-powered diagnostics and assistance.",
+        tags: ["Healthcare", "AI", "ML"],
+        color: "#a855f7",
+        github: "https://www.linkedin.com/in/devesh-inani-700547289/"
     }
 ];
 

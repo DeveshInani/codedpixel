@@ -6,7 +6,10 @@ import Projects from './components/features/Projects';
 import TechStack from './components/features/TechStack';
 import Education from './components/features/Education';
 import Footer from './components/layout/Footer';
+import Contact from './components/features/Contact';
 import Scene from './components/3d/Scene';
+import CustomCursor from './components/ui/CustomCursor';
+import { voiceAssistant } from './utils/VoiceAssistant';
 
 const IS_DEV = import.meta.env.MODE === 'development';
 
@@ -28,6 +31,21 @@ const App = () => {
         const timer = setTimeout(() => setIsIntroAnimating(false), 800);
         return () => clearTimeout(timer);
     }, []);
+
+    // Voice Synthesis Trigger
+    useEffect(() => {
+        if (!isIntroAnimating) {
+            try {
+                const text = storyPhase === 2 && activeProjectTitle
+                    ? `Syncing: ${activeProjectTitle}. Ready for the dive?`
+                    : NARRATIVE_QUOTES[storyPhase];
+
+                if (text) voiceAssistant.speak(text);
+            } catch (err) {
+                console.warn("Audio/Voice blocked by browser policy", err);
+            }
+        }
+    }, [storyPhase, activeProjectTitle, isIntroAnimating]);
 
     // Intersection Observer for scroll-driven narrative
     useEffect(() => {
@@ -82,10 +100,11 @@ const App = () => {
 
     return (
         <div className="relative w-full h-screen bg-[#050505] selection:bg-cyan-500/30 overflow-hidden text-white font-inter">
+            <CustomCursor />
             {/* Background Shader Base */}
-            <div className="fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1),rgba(5,5,5,1))]" />
+            <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1),rgba(5,5,5,1))]" />
 
-            {/* Main 3D Scene - Always visible, fixed in background/layout */}
+            {/* Main 3D Scene */}
             <Scene
                 storyPhase={storyPhase}
                 isIntro={isIntroAnimating}
@@ -93,16 +112,18 @@ const App = () => {
             />
 
             {/* CRT Overlay */}
-            <div className="fixed inset-0 pointer-events-none z-[1000] opacity-[0.03] mix-blend-overlay scanline-effect" />
+            <div className="fixed inset-0 pointer-events-none z-[1000] opacity-[0.05] mix-blend-overlay scanline-effect crt-flicker" />
 
             <div className="relative z-10 h-full overflow-y-auto no-scrollbar scroll-smooth">
-                <Navbar />
+                <div className="pointer-events-auto">
+                    <Navbar />
+                </div>
 
                 {/* Structured Main Content Grid */}
                 <main className="relative">
                     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen w-full">
                         {/* Left Column (Reserved for 3D Humanoid/Artifacts) */}
-                        <div className="hidden lg:block relative" />
+                        <div className="hidden lg:block relative pointer-events-none" />
 
                         {/* Right Column (Content Area) */}
                         <div className="relative z-10 px-6 md:px-12 flex flex-col">
@@ -123,7 +144,8 @@ const App = () => {
                                 <Education />
                             </div>
 
-                            <div id="connect" className="min-h-screen py-32">
+                            <div id="connect" className="min-h-screen py-32 flex flex-col gap-32">
+                                <Contact />
                                 <Footer />
                             </div>
                         </div>
@@ -131,7 +153,7 @@ const App = () => {
                 </main>
 
                 {/* User-Friendly Narrative HUD */}
-                <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[1002] flex flex-col items-center gap-6 w-full max-w-xl px-6">
+                <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[1002] flex flex-col items-center gap-6 w-full max-w-xl px-6 pointer-events-auto">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={storyPhase + activeProjectTitle}

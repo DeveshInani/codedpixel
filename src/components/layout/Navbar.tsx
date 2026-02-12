@@ -31,10 +31,11 @@ const Navbar = () => {
                 animate={{ y: 0, opacity: 1 }}
                 className="hidden lg:flex items-center gap-12 pointer-events-auto px-10 py-4 border border-white/5 bg-black/40 backdrop-blur-md rounded-full"
             >
-                {['Work', 'Stack', 'Experience', 'Connect'].map((item) => (
+                {['Work', 'Stack', 'Archive', 'Connect'].map((item) => (
                     <a
                         key={item}
                         href={`#${item.toLowerCase()}`}
+                        data-cursor-text={`GOTO_${item.toUpperCase()}`}
                         className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-cyan-400 transition-all relative group"
                     >
                         {item}

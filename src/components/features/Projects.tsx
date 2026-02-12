@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import ProjectCard from '../ui/ProjectCard';
 import { MonitorCheck, Factory, Microscope, Activity } from 'lucide-react';
 import { PROJECTS } from '../../data';
+import GlitchText from '../ui/GlitchText';
 
 const Projects = ({ onActiveProjectChange }: { onActiveProjectChange: (title: string) => void }) => {
     const sectionRef = useRef<HTMLElement>(null);
@@ -23,7 +24,7 @@ const Projects = ({ onActiveProjectChange }: { onActiveProjectChange: (title: st
     }, [onActiveProjectChange]);
 
     const getIcon = (title: string) => {
-        if (title.includes('Proctoring')) return MonitorCheck;
+        if (title.includes('Snitchbot')) return MonitorCheck;
         if (title.includes('BIM')) return Factory;
         if (title.includes('Lung')) return Microscope;
         if (title.includes('Doctor')) return Activity;
@@ -34,18 +35,21 @@ const Projects = ({ onActiveProjectChange }: { onActiveProjectChange: (title: st
         <section ref={sectionRef} id="work" className="py-20 w-full max-w-3xl">
             <div className="mb-16">
                 <span className="pixel-font text-purple-500 text-lg tracking-widest uppercase mb-2 block">The Portfolio</span>
-                <h2 className="text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none">SELECTED WORKS</h2>
+                <h2 className="text-5xl md:text-6xl font-black tracking-tighter uppercase leading-none text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">
+                    <GlitchText text="SELECTED WORKS" />
+                </h2>
             </div>
 
             <div className="flex flex-col gap-6">
                 {PROJECTS.map((project, index) => (
-                    <div key={index} data-project-title={project.title}>
+                    <div key={index} data-project-title={project.title} data-cursor-text="OPEN_ARTIFACT">
                         <ProjectCard
                             title={project.title}
                             desc={project.desc}
                             icon={getIcon(project.title)}
                             color={project.color}
                             tags={project.tags}
+                            github={project.github}
                         />
                     </div>
                 ))}
