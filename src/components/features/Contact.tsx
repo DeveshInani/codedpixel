@@ -20,6 +20,7 @@ const Contact = () => {
 
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            console.log("Transmitting to API:", apiUrl);
             const response = await fetch(`${apiUrl}/send-email`, {
                 method: 'POST',
                 headers: {
