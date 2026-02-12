@@ -21,13 +21,19 @@ const Contact = () => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
             console.log("Transmitting to API:", apiUrl);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
             const response = await fetch(`${apiUrl}/send-email`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 const data = await response.json();

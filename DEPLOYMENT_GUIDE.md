@@ -18,9 +18,11 @@ Render will run your Python code.
    - `MAIL_USERNAME`: (Your email)
    - `MAIL_PASSWORD`: (Your Gmail App Password)
    - `MAIL_FROM`: (Your email)
-   - `MAIL_PORT`: `587`
+   - `MAIL_PORT`: `587` (If this times out, use `465`)
    - `MAIL_SERVER`: `smtp.gmail.com`
-   - `ALLOWED_ORIGINS`: `*` (Change this later to your Vercel URL for better security)
+   - `MAIL_STARTTLS`: `True` (If using port 465, set to `False`)
+   - `MAIL_SSL_TLS`: `False` (If using port 465, set to `True`)
+   - `ALLOWED_ORIGINS`: `*`
 6. **Deploy**: Click **Create Web Service**. Wait for it to build. Once done, copy the URL Render gives you (e.g., `https://portfolio-backend.onrender.com`).
 
 ---
